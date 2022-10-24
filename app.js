@@ -6,6 +6,7 @@ const multer = require('multer');
 
 const feedRoutes = require('./routes/feed');
 const authRoutes = require('./routes/auth');
+const { init } = require('./models/post');
 
 require('dotenv').config();
 
@@ -42,7 +43,7 @@ app.use((req, res, next) => {
 	res.setHeader('Access-Control-Allow-Origin', '*');
 	res.setHeader(
 		'Access-Control-Allow-Methods',
-		'GET, POST, PUT, PATCH, DELETE'
+		'OPTIONS, GET, POST, PUT, PATCH, DELETE'
 	);
 	res.setHeader(
 		'Access-Control-Allow-Headers',
@@ -64,6 +65,10 @@ app.use((error, req, res, next) => {
 mongoose
 	.connect(process.env.MONGODB_URI)
 	.then((result) => {
-		app.listen(8080);
+		const server = app.listen(8080);
+		const io = require('./socket').init(server);
+		io.on('connection', (socket) => {
+			console.log('Client connected');
+		});
 	})
 	.catch((err) => console.log(err));
